@@ -35,30 +35,34 @@ config_path = pathlib.Path(__file__).parent.parent.absolute() / "config.yaml"
 with open(config_path) as config_yaml:
     config = yaml.load(config_yaml, Loader=yaml.FullLoader)
 
-# use token specified as env var (if exists)
-kowalski_token_env = os.environ.get("KOWALSKI_TOKEN")
-kowalski_alt_token_env = os.environ.get("KOWALSKI_ALT_TOKEN")
-if (kowalski_token_env is not None) & (kowalski_alt_token_env is not None):
-    config["kowalski"]["token"] = kowalski_token_env
-    config["kowalski"]["alt_token"] = kowalski_alt_token_env
+# use tokens specified as env vars (if exist)
+kowalski_token_env = os.environ.get("KOWALSKI_INSTANCE_TOKEN")
+gloria_token_env = os.environ.get("GLORIA_INSTANCE_TOKEN")
+melman_token_env = os.environ.get("MELMAN_INSTANCE_TOKEN")
+
+if kowalski_token_env is not None:
+    config["kowalski"]["hosts"]["kowalski"]["token"] = kowalski_token_env
+if gloria_token_env is not None:
+    config["kowalski"]["hosts"]["gloria"]["token"] = gloria_token_env
+if melman_token_env is not None:
+    config["kowalski"]["hosts"]["melman"]["token"] = melman_token_env
 
 timeout = config['kowalski']['timeout']
 
-gloria = Kowalski(**config['kowalski'], verbose=False)
-melman = Kowalski(
-    token=config['kowalski']['token'],
-    protocol="https",
-    host="melman.caltech.edu",
-    port=443,
-    timeout=timeout,
-)
-kowalski = Kowalski(
-    token=config['kowalski']['alt_token'],
-    protocol="https",
-    host="kowalski.caltech.edu",
-    port=443,
-    timeout=timeout,
-)
+hosts = [
+    x
+    for x in config['kowalski']['hosts']
+    if config['kowalski']['hosts'][x]['token'] is not None
+]
+instances = {
+    host: {
+        'protocol': config['kowalski']['protocol'],
+        'port': config['kowalski']['port'],
+        'host': f'{host}.caltech.edu',
+        'token': config['kowalski']['hosts'][host]['token'],
+    }
+    for host in hosts
+}
 
 source_catalog = config['kowalski']['collections']['sources']
 alerts_catalog = config['kowalski']['collections']['alerts']
@@ -68,12 +72,12 @@ ext_catalog_info = config['feature_generation']['external_catalog_features']
 cesium_feature_list = config['feature_generation']['cesium_features']
 period_algorithms = config['feature_generation']['period_algorithms']
 
-kowalski_instances = {'kowalski': kowalski, 'gloria': gloria, 'melman': melman}
+kowalski_instances = Kowalski(timeout=300, instances=instances)
 
 
 def drop_close_bright_stars(
     id_dct: dict,
-    kowalski_instance: Kowalski,
+    kowalski_instances: Kowalski,
     catalog: str = gaia_catalog,
     query_radius_arcsec: float = 300.0,
     xmatch_radius_arcsec: float = 2.0,
@@ -87,7 +91,7 @@ def drop_close_bright_stars(
     Use Gaia to identify and drop sources that are too close to bright stars
 
     :param id_dct: one quadrant's worth of id-coordinate pairs (dict)
-    :param kowalski_instance: authenticated instance of a Kowalski database
+    :param kowalski_instances: authenticated instances of Kowalski databases
     :param catalog: name of catalog to use [currently only supports Gaia catalogs] (str)
     :param query_radius_arcsec: size of cone search radius to search for bright stars.
         Default is 300 corresponding with approximate maximum from A. Drake's exclusion radius (float)
@@ -150,10 +154,13 @@ def drop_close_bright_stars(
             },
         }
 
-        q = kowalski_instance.query(query)
-
-        gaia_results = q.get('data')
-        gaia_results_dct.update(gaia_results[catalog])
+        responses = kowalski_instances.query(query)
+        for name in responses.keys():
+            if len(responses[name]) > 0:
+                response = responses[name]
+                if response.get("status", "error") == "success":
+                    gaia_results = response.get("data")
+                    gaia_results_dct.update(gaia_results[catalog])
 
         print('Identifying sources too close to bright stars...')
 
@@ -215,7 +222,7 @@ def drop_close_bright_stars(
                     for dct in radec_split_list
                 ]
 
-                q = kowalski_instance.batch_query(queries, n_treads=8)
+                q = kowalski_instances.batch_query(queries, n_treads=8)
                 for batch_result in q:
                     gaia_results = batch_result['data'][catalog]
                     gaia_results_dct.update(gaia_results)
@@ -247,7 +254,7 @@ def drop_close_bright_stars(
                         "filter": {},
                     },
                 }
-                q = kowalski_instance.query(query)
+                q = kowalski_instances.query(query)
                 gaia_results = q['data'][catalog]
                 gaia_results_dct.update(gaia_results)
         query_result = gaia_results_dct
@@ -410,7 +417,7 @@ def generate_features(
     gaia_catalog: str = gaia_catalog,
     bright_star_query_radius_arcsec: float = 300.0,
     xmatch_radius_arcsec: float = 2.0,
-    kowalski_instances: dict = kowalski_instances,
+    kowalski_instances: Kowalski = kowalski_instances,
     limit: int = 10000,
     period_algorithms: dict = period_algorithms,
     period_batch_size: int = 1000,
@@ -444,7 +451,7 @@ def generate_features(
     :param gaia_catalog*: name of Kowalski catalog containing Gaia data (str)
     :param bright_star_query_radius_arcsec: maximum angular distance from ZTF sources to query nearby bright stars in Gaia (float)
     :param xmatch_radius_arcsec: maximum angular distance from ZTF sources to match external catalog sources (float)
-    :param kowalski_instances*: dictionary containing {names of Kowalski instances : authenticated penquins.Kowalski objects} (dict)
+    :param kowalski_instances*: authenticated instances of Kowalski databases (penquins.Kowalski)
     :param limit: maximum number of sources to process in batch queries / statistics calculations (int)
     :param period_algorithms*: dictionary containing names of period algorithms to run. Normally specified in config - if specified here, should be a (list)
     :param period_batch_size: maximum number of sources to simultaneously perform period finding (int)
@@ -506,7 +513,7 @@ def generate_features(
         _, lst = get_ids_loop(
             get_field_ids,
             catalog=source_catalog,
-            kowalski_instance=kowalski_instances['melman'],
+            kowalski_instances=kowalski_instances,
             limit=limit,
             field=field,
             ccd_range=ccd,
@@ -521,7 +528,7 @@ def generate_features(
             # Each index of lst corresponds to a different ccd/quad combo
             feature_gen_source_list = drop_close_bright_stars(
                 lst[0],
-                kowalski_instance=kowalski_instances['gloria'],
+                kowalski_instances=kowalski_instances,
                 catalog=gaia_catalog,
                 query_radius_arcsec=bright_star_query_radius_arcsec,
                 xmatch_radius_arcsec=xmatch_radius_arcsec,
@@ -609,11 +616,12 @@ def generate_features(
         lc_limit = int(np.ceil(len(feature_gen_source_list) / Ncore))
 
     lcs = get_lightcurves_via_ids(
-        kowalski_instance=kowalski_instances['melman'],
+        kowalski_instances=kowalski_instances,
         ids=[x for x in feature_gen_source_list.keys()],
         catalog=source_catalog,
         limit_per_query=lc_limit,
         Ncore=Ncore,
+        get_basic_data=True,
     )
 
     feature_dict = feature_gen_source_list.copy()
@@ -630,6 +638,7 @@ def generate_features(
             print(f"{count} done")
         if count == len(lcs):
             print(f"{count} done")
+
         _id = lc['_id']
         lc_unflagged = [x for x in lc['data'] if x['catflags'] == 0]
         flt = lc['filter']
@@ -873,7 +882,7 @@ def generate_features(
         # Get ZTF alert stats
         alert_stats_dct = alertstats.get_ztf_alert_stats(
             feature_dict,
-            kowalski_instance=kowalski_instances['kowalski'],
+            kowalski_instances=kowalski_instances,
             radius_arcsec=xmatch_radius_arcsec,
             limit=limit,
             Ncore=Ncore,
@@ -887,7 +896,7 @@ def generate_features(
         # Add crossmatches to Gaia, AllWISE and PS1 (by default, see config.yaml)
         feature_dict = external_xmatch.xmatch(
             feature_dict,
-            kowalski_instances['gloria'],
+            kowalski_instances,
             catalog_info=ext_catalog_info,
             radius_arcsec=xmatch_radius_arcsec,
             limit=limit,
