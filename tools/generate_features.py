@@ -222,10 +222,20 @@ def drop_close_bright_stars(
                     for dct in radec_split_list
                 ]
 
-                q = kowalski_instances.batch_query(queries, n_treads=8)
-                for batch_result in q:
-                    gaia_results = batch_result['data'][catalog]
-                    gaia_results_dct.update(gaia_results)
+                responses = kowalski_instances.query(
+                    queries=queries, use_batch_query=True, max_n_threads=Ncore
+                )
+                for name in responses.keys():
+                    if len(responses[name]) > 0:
+                        response_list = responses[name]
+                        for response in response_list:
+                            if response.get("status", "error") == "success":
+                                gaia_results = response.get("data")
+                                gaia_results_dct.update(gaia_results)
+
+                # for batch_result in q:
+                #     gaia_results = batch_result['data'][catalog]
+                #     gaia_results_dct.update(gaia_results)
             else:
                 # Get Gaia EDR3 ID, G mag, BP-RP, and coordinates
                 query = {
@@ -254,9 +264,14 @@ def drop_close_bright_stars(
                         "filter": {},
                     },
                 }
-                q = kowalski_instances.query(query)
-                gaia_results = q['data'][catalog]
-                gaia_results_dct.update(gaia_results)
+                responses = kowalski_instances.query(query)
+                for name in responses.keys():
+                    if len(responses[name]) > 0:
+                        response = responses[name]
+                        if response.get("status", "error") == "success":
+                            gaia_results = response.get("data")
+                            gaia_results_dct.update(gaia_results[catalog])
+
         query_result = gaia_results_dct
 
     if len(query_result) > 0:
@@ -594,7 +609,7 @@ def generate_features(
             # Each index of lst corresponds to a different ccd/quad combo
             feature_gen_source_list = drop_close_bright_stars(
                 lst[0],
-                kowalski_instance=kowalski_instances['gloria'],
+                kowalski_instances=kowalski_instances,
                 catalog=gaia_catalog,
                 query_radius_arcsec=bright_star_query_radius_arcsec,
                 xmatch_radius_arcsec=xmatch_radius_arcsec,
