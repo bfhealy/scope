@@ -911,7 +911,10 @@ def generate_features(
             pdot_dict['Ones'] = np.ones(len(tme_collection))
 
         for algorithm in period_algorithms:
-            algorithm_name = algorithm.split('_')[0]
+            if algorithm != 'ELS_ECE_EAOV':
+                algorithm_name = algorithm.split('_')[0]
+            else:
+                algorithm_name = algorithm
             for idx, _id in enumerate(keep_id_list):
                 if not do_nested_GPU_algorithms:
                     period = period_dict[algorithm][idx]
@@ -977,7 +980,10 @@ def generate_features(
         code.interact(local=locals())
         print(f'Computing Fourier stats for {len(period_dict)} algorithms...')
         for algorithm in period_algorithms:
-            algorithm_name = algorithm.split('_')[0]
+            if algorithm != 'ELS_ECE_EAOV':
+                algorithm_name = algorithm.split('_')[0]
+            else:
+                algorithm_name = algorithm
             print(f'- Algorithm: {algorithm}')
             fourierStats = Parallel(n_jobs=Ncore)(
                 delayed(lcstats.calc_fourier_stats)(
