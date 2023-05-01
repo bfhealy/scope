@@ -75,8 +75,11 @@ def get_ztf_alert_stats(
             ]
             q = kowalski_instance.batch_query(queries, n_treads=Ncore)
             for batch_result in q:
-                alert_results = batch_result['data'][catalog]
-                alert_results_dct.update(alert_results)
+                try:
+                    alert_results = batch_result['data'][catalog]
+                    alert_results_dct.update(alert_results)
+                except KeyError:
+                    alert_results_dct = {}
 
         else:
             # Get ZTF alert data
