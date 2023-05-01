@@ -929,19 +929,33 @@ def generate_features(
                             'best_pdots'
                         ][idx]
                     else:
-                        all_EAOV_indices = topN_significance_indices_allSources[
-                            'EAOV_periodogram'
-                        ]['topN_indices'][idx]
+                        # all_EAOV_indices = topN_significance_indices_allSources[
+                        #     'EAOV_periodogram'
+                        # ]['topN_indices'][idx]
 
-                        ELS_ECE_significance_indices_EAOV = [
-                            x
-                            for x in all_EAOV_indices
-                            if x
-                            in topN_significance_indices_allSources['ELS_ECE_EAOV'][idx]
-                        ]
-                        best_ELS_ECE_EAOV_significance_idx = (
-                            ELS_ECE_significance_indices_EAOV[0]
+                        ELS_ECE_significance_indices_EAOV = (
+                            topN_significance_indices_allSources['ELS_ECE_EAOV'][idx]
                         )
+
+                        # ELS_ECE_significance_indices_EAOV = [
+                        #     x
+                        #     for x in all_EAOV_indices
+                        #     if x
+                        #     in topN_significance_indices_allSources['ELS_ECE_EAOV'][idx]
+                        # ]
+
+                        best_index_of_indices = np.argmax(
+                            topN_significance_indices_allSources['EAOV_periodogram'][
+                                'all_significances'
+                            ][ELS_ECE_significance_indices_EAOV]
+                        )
+                        # (
+                        #     ELS_ECE_significance_indices_EAOV[0]
+                        # )
+                        best_ELS_ECE_EAOV_significance_idx = (
+                            ELS_ECE_significance_indices_EAOV[best_index_of_indices]
+                        )
+
                         period = 1 / freqs[best_ELS_ECE_EAOV_significance_idx]
 
                         significance = topN_significance_indices_allSources[
