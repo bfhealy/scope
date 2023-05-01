@@ -773,7 +773,8 @@ def generate_features(
                 freqs_no_terrestrial = freqs[idx]
         else:
             freqs_no_terrestrial = freqs
-            periods_no_terrestrial = 1 / freqs_no_terrestrial
+
+        periods_no_terrestrial = 1 / freqs_no_terrestrial
 
         # Continue with periodsearch/periodfind
         period_dict = {}
