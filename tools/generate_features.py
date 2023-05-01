@@ -435,6 +435,7 @@ def generate_features(
     quadrant_index: int = 0,
     doSpecificIDs: bool = False,
     skipCloseSources: bool = False,
+    top_n_periods: int = 50,
 ):
     """
     Generate features for ZTF light curves
@@ -469,6 +470,7 @@ def generate_features(
     :param quadrant_index: number of job in quadrant file to run (int)
     :param doSpecificIDs: flag to perform feature generation for ztf_id column in config-specified file (bool)
     :param skipCloseSources: flag to skip removal of sources too close to bright stars via Gaia (bool)
+    :param top_n_periods: number of ELS, ECE periods to pass to EAOV if using ELS_ECE_EAOV algorithm (int)
 
     :return feature_df: dataframe containing generated features
 
@@ -769,7 +771,12 @@ def generate_features(
         pdot_dict = {}
         if doCPU or doGPU:
             if doCPU and doGPU:
-                raise KeyError('Please set only one of -doCPU or -doGPU.')
+                raise KeyError('Please set only one of --doCPU or --doGPU.')
+
+            do_nested_GPU_algorithms = False
+            if 'ELS_ECE_EAOV' in period_algorithms:
+                period_algorithms.remove('ELS_ECE_EAOV')
+                do_nested_GPU_algorithms = True
 
             n_sources = len(feature_dict)
             if n_sources % period_batch_size != 0:
@@ -799,7 +806,6 @@ def generate_features(
                             )
                         ],
                         freqs,
-                        batch_size=period_batch_size,
                         doGPU=doGPU,
                         doCPU=doCPU,
                         doRemoveTerrestrial=doRemoveTerrestrial,
@@ -820,6 +826,9 @@ def generate_features(
                 period_dict[algorithm] = all_periods
                 significance_dict[algorithm] = all_significances
                 pdot_dict[algorithm] = all_pdots
+
+            if do_nested_GPU_algorithms:
+                pass
         else:
             warnings.warn("Skipping period finding; setting all periods to 1.0 d.")
             # Default periods 1.0 d
@@ -1152,6 +1161,12 @@ if __name__ == "__main__":
         default=False,
         help="if set, skip removal of sources too close to bright stars via Gaia. May be useful if input data has previously been analyzed in this way.",
     )
+    parser.add_argument(
+        "--top_n_periods",
+        type=int,
+        default=50,
+        help="number of ELS, ECE periods to pass to EAOV if using ELS_ECE_EAOV algorithm",
+    )
 
     args = parser.parse_args()
 
@@ -1186,4 +1201,5 @@ if __name__ == "__main__":
         quadrant_index=args.quadrant_index,
         doSpecificIDs=args.doSpecificIDs,
         skipCloseSources=args.skipCloseSources,
+        top_n_periods=args.top_n_periods,
     )
