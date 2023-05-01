@@ -889,10 +889,10 @@ def generate_features(
                 ELS_ECE_top_indices = np.concatenate(
                     [
                         topN_significance_indices_allSources['ELS_periodogram'][
-                            'topN_sources'
+                            'topN_indices'
                         ],
                         topN_significance_indices_allSources['ECE_periodogram'][
-                            'topN_sources'
+                            'topN_indices'
                         ],
                     ],
                     axis=1,
