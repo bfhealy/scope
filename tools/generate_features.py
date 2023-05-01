@@ -918,6 +918,7 @@ def generate_features(
                     pdot = pdot_dict[algorithm][idx]
                 else:
                     if algorithm != 'ELS_ECE_EAOV':
+                        algorithm = algorithm.split('_')[0]
                         period = topN_significance_indices_allSources[algorithm][
                             'best_periods'
                         ][idx]
