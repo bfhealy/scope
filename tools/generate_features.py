@@ -770,7 +770,7 @@ def generate_features(
         freqs_copy = freqs.copy()
         if freqs_to_remove is not None:
             for pair in freqs_to_remove:
-                idx = np.where((freqs < pair[0]) | (freqs > pair[1]))[0]
+                idx = np.where((freqs_copy < pair[0]) | (freqs_copy > pair[1]))[0]
                 freqs_copy = freqs_copy[idx]
         freqs_no_terrestrial = freqs_copy
 
