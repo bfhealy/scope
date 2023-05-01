@@ -870,8 +870,8 @@ def generate_features(
                                 'best_periods'
                             ] += [best_period]
 
-                            # best_significance = significances[idx]
-                            best_significance = period_statistics['data'][best_index]
+                            best_significance = significances[idx]
+                            # best_significance = period_statistics['data'][best_index]
                             topN_significance_indices_allSources[algorithm][
                                 'best_significances'
                             ] += [best_significance]
