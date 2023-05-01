@@ -344,7 +344,6 @@ def find_periods(
                 periods_best.append(period)
                 significances.append(significance)
 
-    print(periods_best, significances, pdots)
     return np.array(periods_best), np.array(significances), np.array(pdots)
 
 
