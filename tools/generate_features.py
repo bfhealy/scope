@@ -886,7 +886,20 @@ def generate_features(
                 pdot_dict[algorithm] = all_pdots
 
             if do_nested_GPU_algorithms:
-                pass
+                ELS_ECE_top_indices = np.concatenate(
+                    [
+                        topN_significance_indices_allSources['ELS_periodogram'][
+                            'topN_sources'
+                        ],
+                        topN_significance_indices_allSources['ECE_periodogram'][
+                            'topN_sources'
+                        ],
+                    ],
+                    axis=1,
+                )
+                # topN_significance_indices_allSources['ELS_ECE_top_indices'] = [
+                #     np.unique(x) for x in ELS_ECE_top_indices
+                # ]
         else:
             warnings.warn("Skipping period finding; setting all periods to 1.0 d.")
             # Default periods 1.0 d
@@ -898,10 +911,12 @@ def generate_features(
         code.interact(local=locals())
         for algorithm in period_algorithms:
             for idx, _id in enumerate(keep_id_list):
-
-                period = period_dict[algorithm][idx]
-                significance = significance_dict[algorithm][idx]
-                pdot = pdot_dict[algorithm][idx]
+                if not do_nested_GPU_algorithms:
+                    period = period_dict[algorithm][idx]
+                    significance = significance_dict[algorithm][idx]
+                    pdot = pdot_dict[algorithm][idx]
+                else:
+                    pass
 
                 tme_dict[_id][f'period_{algorithm}'] = period
                 tme_dict[_id][f'significance_{algorithm}'] = significance
