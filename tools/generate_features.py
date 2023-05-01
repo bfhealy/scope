@@ -27,6 +27,7 @@ import warnings
 from cesium.featurize import time_series, featurize_single_ts
 import json
 from joblib import Parallel, delayed
+import code
 
 BASE_DIR = pathlib.Path(__file__).parent.parent.absolute()
 
@@ -775,8 +776,15 @@ def generate_features(
 
             do_nested_GPU_algorithms = False
             if 'ELS_ECE_EAOV' in period_algorithms:
-                period_algorithms.remove('ELS_ECE_EAOV')
+                period_algorithms = [
+                    'ELS_periodogram',
+                    'ECE_periodogram',
+                    'EAOV_periodogram',
+                ]
                 do_nested_GPU_algorithms = True
+                warnings.warn(
+                    'Performing nested ELS/ECE -> EAOV period search. Other algorithms in config will be ignored.'
+                )
 
             n_sources = len(feature_dict)
             if n_sources % period_batch_size != 0:
@@ -784,11 +792,19 @@ def generate_features(
             else:
                 n_iterations = n_sources // period_batch_size
 
+            topN_significance_indices_allSources = {}
+
             for algorithm in period_algorithms:
                 # Iterate over period batches and algorithms
                 all_periods = np.array([])
                 all_significances = np.array([])
                 all_pdots = np.array([])
+                topN_significance_indices_allSources[algorithm] = {
+                    'topN_indices': [],
+                    'best_periods': [],
+                    'best_significances': [],
+                    'best_pdots': [],
+                }
 
                 print(
                     f'Running period algorithms for {len(feature_dict)} sources in batches of {period_batch_size}...'
@@ -817,11 +833,53 @@ def generate_features(
                         # Ncore=Ncore, # CPU parallelization to be added
                     )
 
-                    all_periods = np.concatenate([all_periods, periods])
-                    all_significances = np.concatenate(
-                        [all_significances, significances]
-                    )
-                    all_pdots = np.concatenate([all_pdots, pdots])
+                    if not do_nested_GPU_algorithms:
+                        all_periods = np.concatenate([all_periods, periods])
+                        all_significances = np.concatenate(
+                            [all_significances, significances]
+                        )
+                        all_pdots = np.concatenate([all_pdots, pdots])
+
+                    else:
+                        print(periods, significances, pdots)
+                        code.interact(local=locals())
+
+                        for idx, period_statistics in enumerate(periods):
+                            # Maximum statistic is best for ELS; select top N
+                            if algorithm == 'ELS_periodogram':
+                                topN_significance_indices = np.argsort(
+                                    period_statistics['data'].flatten()
+                                )[::-1][:top_n_periods]
+                            # Minimum statistic is best for ECE; select top N
+                            elif algorithm == 'ECE_periodogram':
+                                topN_significance_indices = np.argsort(
+                                    period_statistics['data'].flatten()
+                                )[:top_n_periods]
+                            # Maximum statistic is best for EAOV; keep all values
+                            elif algorithm == 'EAOV_periodogram':
+                                topN_significance_indices = np.argsort(
+                                    period_statistics['data'].flatten()
+                                )[::-1]
+
+                            topN_significance_indices_allSources[algorithm][
+                                'topN_indices'
+                            ] += [topN_significance_indices]
+                            best_index = topN_significance_indices[0]
+                            best_period = 1 / freqs[best_index]
+                            topN_significance_indices_allSources[algorithm][
+                                'best_periods'
+                            ] += [best_period]
+
+                            # best_significance = significances[idx]
+                            best_significance = period_statistics['data'][best_index]
+                            topN_significance_indices_allSources[algorithm][
+                                'best_significances'
+                            ] += [best_significance]
+
+                            best_pdot = pdots[idx]
+                            topN_significance_indices_allSources[algorithm][
+                                'best_pdots'
+                            ] += [best_pdot]
 
                 period_dict[algorithm] = all_periods
                 significance_dict[algorithm] = all_significances
