@@ -766,6 +766,14 @@ def generate_features(
         else:
             freqs_to_remove = None
 
+        # Create separate grid with terrestrial freqs removed
+        if freqs_to_remove is not None:
+            for pair in freqs_to_remove:
+                idx = np.where((freqs < pair[0]) | (freqs > pair[1]))[0]
+                freqs_no_terrestrial = freqs[idx]
+        else:
+            freqs_no_terrestrial = freqs
+
         # Continue with periodsearch/periodfind
         period_dict = {}
         significance_dict = {}
@@ -867,7 +875,7 @@ def generate_features(
                                 'topN_indices'
                             ] += [topN_significance_indices]
                             best_index = topN_significance_indices[0]
-                            best_period = 1 / freqs[best_index]
+                            best_period = 1 / freqs_no_terrestrial[best_index]
                             topN_significance_indices_allSources[algorithm][
                                 'best_periods'
                             ] += [best_period]
@@ -959,7 +967,9 @@ def generate_features(
                             ELS_ECE_significance_indices_EAOV[best_index_of_indices]
                         )
 
-                        period = 1 / freqs[best_ELS_ECE_EAOV_significance_idx]
+                        period = (
+                            1 / freqs_no_terrestrial[best_ELS_ECE_EAOV_significance_idx]
+                        )
 
                         significance = topN_significance_indices_allSources[
                             'EAOV_periodogram'

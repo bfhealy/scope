@@ -18,14 +18,14 @@ def find_periods(
     # Ncore=4, # todo: parallelize CPU period algorithms
 ):
 
-    if (
-        doRemoveTerrestrial
-        and (freqs_to_remove is not None)
-        and not (algorithm == "LS")
-    ):
-        for pair in freqs_to_remove:
-            idx = np.where((freqs < pair[0]) | (freqs > pair[1]))[0]
-            freqs = freqs[idx]
+    # if (
+    #     doRemoveTerrestrial
+    #     and (freqs_to_remove is not None)
+    #     and not (algorithm == "LS")
+    # ):
+    #     for pair in freqs_to_remove:
+    #         idx = np.where((freqs < pair[0]) | (freqs > pair[1]))[0]
+    #         freqs = freqs[idx]
 
     periods_best, significances = [], []
     pdots = np.zeros((len(lightcurves),))
