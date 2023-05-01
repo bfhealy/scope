@@ -895,6 +895,7 @@ def generate_features(
             significance_dict['Ones'] = np.ones(len(tme_collection))
             pdot_dict['Ones'] = np.ones(len(tme_collection))
 
+        code.interact(local=locals())
         for algorithm in period_algorithms:
             for idx, _id in enumerate(keep_id_list):
 
