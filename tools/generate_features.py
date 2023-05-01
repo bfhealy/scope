@@ -966,21 +966,22 @@ def generate_features(
                             'best_pdots'
                         ][idx]
 
-                tme_dict[_id][f'period_{algorithm}'] = period
-                tme_dict[_id][f'significance_{algorithm}'] = significance
-                tme_dict[_id][f'pdot_{algorithm}'] = pdot
+                tme_dict[_id][f'period_{algorithm_name}'] = period
+                tme_dict[_id][f'significance_{algorithm_name}'] = significance
+                tme_dict[_id][f'pdot_{algorithm_name}'] = pdot
 
-                feature_dict[_id][f'period_{algorithm}'] = period
-                feature_dict[_id][f'significance_{algorithm}'] = significance
-                feature_dict[_id][f'pdot_{algorithm}'] = pdot
+                feature_dict[_id][f'period_{algorithm_name}'] = period
+                feature_dict[_id][f'significance_{algorithm_name}'] = significance
+                feature_dict[_id][f'pdot_{algorithm_name}'] = pdot
 
         code.interact(local=locals())
         print(f'Computing Fourier stats for {len(period_dict)} algorithms...')
         for algorithm in period_algorithms:
+            algorithm_name = algorithm.split('_')[0]
             print(f'- Algorithm: {algorithm}')
             fourierStats = Parallel(n_jobs=Ncore)(
                 delayed(lcstats.calc_fourier_stats)(
-                    id, vals['tme'], vals[f'period_{algorithm}']
+                    id, vals['tme'], vals[f'period_{algorithm_name}']
                 )
                 for id, vals in tme_dict.items()
             )
@@ -989,20 +990,20 @@ def generate_features(
                 _id = [x for x in statline.keys()][0]
                 statvals = [x for x in statline.values()][0]
 
-                feature_dict[_id][f'f1_power_{algorithm}'] = statvals[0]
-                feature_dict[_id][f'f1_BIC_{algorithm}'] = statvals[1]
-                feature_dict[_id][f'f1_a_{algorithm}'] = statvals[2]
-                feature_dict[_id][f'f1_b_{algorithm}'] = statvals[3]
-                feature_dict[_id][f'f1_amp_{algorithm}'] = statvals[4]
-                feature_dict[_id][f'f1_phi0_{algorithm}'] = statvals[5]
-                feature_dict[_id][f'f1_relamp1_{algorithm}'] = statvals[6]
-                feature_dict[_id][f'f1_relphi1_{algorithm}'] = statvals[7]
-                feature_dict[_id][f'f1_relamp2_{algorithm}'] = statvals[8]
-                feature_dict[_id][f'f1_relphi2_{algorithm}'] = statvals[9]
-                feature_dict[_id][f'f1_relamp3_{algorithm}'] = statvals[10]
-                feature_dict[_id][f'f1_relphi3_{algorithm}'] = statvals[11]
-                feature_dict[_id][f'f1_relamp4_{algorithm}'] = statvals[12]
-                feature_dict[_id][f'f1_relphi4_{algorithm}'] = statvals[13]
+                feature_dict[_id][f'f1_power_{algorithm_name}'] = statvals[0]
+                feature_dict[_id][f'f1_BIC_{algorithm_name}'] = statvals[1]
+                feature_dict[_id][f'f1_a_{algorithm_name}'] = statvals[2]
+                feature_dict[_id][f'f1_b_{algorithm_name}'] = statvals[3]
+                feature_dict[_id][f'f1_amp_{algorithm_name}'] = statvals[4]
+                feature_dict[_id][f'f1_phi0_{algorithm_name}'] = statvals[5]
+                feature_dict[_id][f'f1_relamp1_{algorithm_name}'] = statvals[6]
+                feature_dict[_id][f'f1_relphi1_{algorithm_name}'] = statvals[7]
+                feature_dict[_id][f'f1_relamp2_{algorithm_name}'] = statvals[8]
+                feature_dict[_id][f'f1_relphi2_{algorithm_name}'] = statvals[9]
+                feature_dict[_id][f'f1_relamp3_{algorithm_name}'] = statvals[10]
+                feature_dict[_id][f'f1_relphi3_{algorithm_name}'] = statvals[11]
+                feature_dict[_id][f'f1_relamp4_{algorithm_name}'] = statvals[12]
+                feature_dict[_id][f'f1_relphi4_{algorithm_name}'] = statvals[13]
 
         code.interact(local=locals())
 
