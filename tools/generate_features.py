@@ -936,7 +936,7 @@ def generate_features(
                             topN_significance_indices_allSources['ELS_ECE_EAOV'][idx]
                         ]
                         best_ELS_ECE_EAOV_significance_idx = np.argmax(
-                            topN_significance_indices_allSources['EAOV_periododgram'][
+                            topN_significance_indices_allSources['EAOV_periodogram'][
                                 'all_significances'
                             ][top_AOV_indices]
                         )
