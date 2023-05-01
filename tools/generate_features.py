@@ -911,6 +911,7 @@ def generate_features(
             pdot_dict['Ones'] = np.ones(len(tme_collection))
 
         for algorithm in period_algorithms:
+            algorithm_name = algorithm.split('_')[0]
             for idx, _id in enumerate(keep_id_list):
                 if not do_nested_GPU_algorithms:
                     period = period_dict[algorithm][idx]
@@ -918,7 +919,6 @@ def generate_features(
                     pdot = pdot_dict[algorithm][idx]
                 else:
                     if algorithm != 'ELS_ECE_EAOV':
-                        algorithm = algorithm.split('_')[0]
                         period = topN_significance_indices_allSources[algorithm][
                             'best_periods'
                         ][idx]
