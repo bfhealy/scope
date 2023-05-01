@@ -910,7 +910,6 @@ def generate_features(
             significance_dict['Ones'] = np.ones(len(tme_collection))
             pdot_dict['Ones'] = np.ones(len(tme_collection))
 
-        code.interact(local=locals())
         for algorithm in period_algorithms:
             for idx, _id in enumerate(keep_id_list):
                 if not do_nested_GPU_algorithms:
@@ -1003,6 +1002,8 @@ def generate_features(
                 feature_dict[_id][f'f1_relphi3_{algorithm}'] = statvals[11]
                 feature_dict[_id][f'f1_relamp4_{algorithm}'] = statvals[12]
                 feature_dict[_id][f'f1_relphi4_{algorithm}'] = statvals[13]
+
+        code.interact(local=locals())
 
         print('Computing dmdt histograms...')
         dmdt = Parallel(n_jobs=Ncore)(
