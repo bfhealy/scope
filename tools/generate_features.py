@@ -854,6 +854,11 @@ def generate_features(
                                 )[:top_n_periods]
                             # Maximum statistic is best for EAOV; keep all values
                             elif algorithm == 'EAOV_periodogram':
+                                all_significances = period_statistics['data'].flatten()
+                                topN_significance_indices_allSources[algorithm][
+                                    'all_significances'
+                                ] = all_significances
+
                                 topN_significance_indices = np.argsort(
                                     period_statistics['data'].flatten()
                                 )[::-1]
@@ -868,7 +873,6 @@ def generate_features(
                             ] += [best_period]
 
                             best_significance = significances[idx]
-                            # best_significance = period_statistics['data'][best_index]
                             topN_significance_indices_allSources[algorithm][
                                 'best_significances'
                             ] += [best_significance]
@@ -925,14 +929,16 @@ def generate_features(
                             'best_pdots'
                         ][idx]
                     else:
-                        all_AOV_significances = topN_significance_indices_allSources[
+                        all_AOV_indices = topN_significance_indices_allSources[
                             'EAOV_periodogram'
-                        ]['best_significances'][idx]
-                        top_AOV_significances = all_AOV_significances[
-                            topN_significance_indices_allSources['ELS_ECE_EAOV']
-                        ][idx]
+                        ]['topN_indices'][idx]
+                        top_AOV_indices = all_AOV_indices[
+                            topN_significance_indices_allSources['ELS_ECE_EAOV'][idx]
+                        ]
                         best_ELS_ECE_EAOV_significance_idx = np.argmax(
-                            top_AOV_significances
+                            topN_significance_indices_allSources['EAOV_periododgram'][
+                                'all_significances'
+                            ][top_AOV_indices]
                         )
 
                         period = topN_significance_indices_allSources[
