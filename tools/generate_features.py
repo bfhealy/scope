@@ -841,9 +841,6 @@ def generate_features(
                         all_pdots = np.concatenate([all_pdots, pdots])
 
                     else:
-                        print(periods, significances, pdots)
-                        code.interact(local=locals())
-
                         for idx, period_statistics in enumerate(periods):
                             # Maximum statistic is best for ELS; select top N
                             if algorithm == 'ELS_periodogram':
@@ -897,9 +894,10 @@ def generate_features(
                     ],
                     axis=1,
                 )
-                # topN_significance_indices_allSources['ELS_ECE_top_indices'] = [
-                #     np.unique(x) for x in ELS_ECE_top_indices
-                # ]
+                topN_significance_indices_allSources['ELS_ECE_EAOV'] = [
+                    np.unique(x) for x in ELS_ECE_top_indices
+                ]
+                period_algorithms += ['ELS_ECE_EAOV']
         else:
             warnings.warn("Skipping period finding; setting all periods to 1.0 d.")
             # Default periods 1.0 d
@@ -916,7 +914,36 @@ def generate_features(
                     significance = significance_dict[algorithm][idx]
                     pdot = pdot_dict[algorithm][idx]
                 else:
-                    pass
+                    if algorithm != 'ELS_ECE_EAOV':
+                        period = topN_significance_indices_allSources[algorithm][
+                            'best_periods'
+                        ][idx]
+                        significance = topN_significance_indices_allSources[algorithm][
+                            'best_significances'
+                        ][idx]
+                        pdot = topN_significance_indices_allSources[algorithm][
+                            'best_pdots'
+                        ][idx]
+                    else:
+                        all_AOV_significances = topN_significance_indices_allSources[
+                            'EAOV_periodogram'
+                        ]['best_significances'][idx]
+                        top_AOV_significances = all_AOV_significances[
+                            topN_significance_indices_allSources['ELS_ECE_EAOV']
+                        ][idx]
+                        best_ELS_ECE_EAOV_significance_idx = np.argmax(
+                            top_AOV_significances
+                        )
+
+                        period = topN_significance_indices_allSources[
+                            'EAOV_periodogram'
+                        ]['best_periods'][best_ELS_ECE_EAOV_significance_idx]
+                        significance = period = topN_significance_indices_allSources[
+                            'EAOV_periodogram'
+                        ]['best_significances'][best_ELS_ECE_EAOV_significance_idx]
+                        pdot = topN_significance_indices_allSources['EAOV_periodogram'][
+                            'best_periods'
+                        ][best_ELS_ECE_EAOV_significance_idx]
 
                 tme_dict[_id][f'period_{algorithm}'] = period
                 tme_dict[_id][f'significance_{algorithm}'] = significance
@@ -926,6 +953,7 @@ def generate_features(
                 feature_dict[_id][f'significance_{algorithm}'] = significance
                 feature_dict[_id][f'pdot_{algorithm}'] = pdot
 
+        code.interact(local=locals())
         print(f'Computing Fourier stats for {len(period_dict)} algorithms...')
         for algorithm in period_algorithms:
             print(f'- Algorithm: {algorithm}')
