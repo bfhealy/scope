@@ -790,6 +790,22 @@ def generate_features(
                     'EAOV_periodogram',
                 ]
                 do_nested_GPU_algorithms = True
+                topN_significance_indices_allSources = {
+                    algorithm: {
+                        'topN_indices': [],
+                        'best_periods': [],
+                        'best_significances': [],
+                        'best_pdots': [],
+                    }
+                    for algorithm in period_algorithms
+                }
+                # Additional entry for nested algorithm
+                topN_significance_indices_allSources['ELS_ECE_EAOV'] = {
+                    'topN_indices': [],
+                    'best_periods': [],
+                    'best_significances': [],
+                    'best_pdots': [],
+                }
                 warnings.warn(
                     'Performing nested ELS/ECE -> EAOV period search. Other algorithms in config will be ignored.'
                 )
@@ -800,33 +816,33 @@ def generate_features(
             else:
                 n_iterations = n_sources // period_batch_size
 
-            topN_significance_indices_allSources = {}
-            topN_significance_indices_allSources['ELS_ECE_EAOV'] = {
-                'topN_indices': [],
-                'best_periods': [],
-                'best_significances': [],
-                'best_pdots': [],
-            }
+            all_periods = {algorithm: [] for algorithm in period_algorithms}
+            all_significances = {algorithm: [] for algorithm in period_algorithms}
+            all_pdots = {algorithm: [] for algorithm in period_algorithms}
 
-            for algorithm in period_algorithms:
-                # Iterate over period batches and algorithms
-                all_periods = np.array([])
-                all_significances = np.array([])
-                all_pdots = np.array([])
-                topN_significance_indices_allSources[algorithm] = {
-                    'topN_indices': [],
-                    'best_periods': [],
-                    'best_significances': [],
-                    'best_pdots': [],
-                }
+            for i in range(0, n_iterations):
+                print(f"Iteration {i+1} of {n_iterations}...")
 
-                print(
-                    f'Running period algorithms for {len(feature_dict)} sources in batches of {period_batch_size}...'
-                )
-                print(f'Running {algorithm} algorithm:')
+                for algorithm in period_algorithms:
+                    # Iterate over period batches and algorithms
+                    # all_periods = np.array([])
+                    # all_significances = np.array([])
+                    # all_pdots = np.array([])
 
-                for i in range(0, n_iterations):
-                    print(f"Iteration {i+1} of {n_iterations}...")
+                    # all_periods = {}
+                    # topN_significance_indices_allSources[algorithm] = {
+                    #     'topN_indices': [],
+                    #     'best_periods': [],
+                    #     'best_significances': [],
+                    #     'best_pdots': [],
+                    # }
+
+                    print(
+                        f'Running period algorithms for {len(feature_dict)} sources in batches of {period_batch_size}...'
+                    )
+                    print(f'Running {algorithm} algorithm:')
+
+                    # Iterate over algorithms
                     periods, significances, pdots = periodsearch.find_periods(
                         algorithm,
                         tme_collection[
@@ -848,11 +864,15 @@ def generate_features(
                     )
 
                     if not do_nested_GPU_algorithms:
-                        all_periods = np.concatenate([all_periods, periods])
-                        all_significances = np.concatenate(
-                            [all_significances, significances]
+                        all_periods[algorithm] = np.concatenate(
+                            [all_periods[algorithm], periods]
                         )
-                        all_pdots = np.concatenate([all_pdots, pdots])
+                        all_significances[algorithm] = np.concatenate(
+                            [all_significances[algorithm], significances]
+                        )
+                        all_pdots[algorithm] = np.concatenate(
+                            [all_pdots[algorithm], pdots]
+                        )
 
                     else:
                         for idx, period_statistics in enumerate(periods):
