@@ -887,10 +887,12 @@ def generate_features(
                                 np.unique(x) for x in ELS_ECE_top_indices
                             ]
 
-                            best_indices = [
+                            best_index_of_indices = [
                                 np.argmax(p_stats[i][ELS_ECE_top_indices[i]])
                                 for i in range(len(p_stats))
                             ]
+
+                            best_indices = ELS_ECE_top_indices[best_index_of_indices]
 
                             all_periods['ELS_ECE_EAOV'] = np.concatenate(
                                 [
@@ -898,6 +900,24 @@ def generate_features(
                                     1 / freqs_no_terrestrial[best_indices],
                                 ]
                             )
+
+                            all_significances['ELS_ECE_EAOV'] = np.concatenate(
+                                [
+                                    all_significances['ELS_ECE_EAOV'],
+                                    [
+                                        p_stats[i][best_indices[i]]
+                                        for i in range(len(best_indices))
+                                    ],
+                                ]
+                            )
+
+                            all_pdots['ELS_ECE_EAOV'] = np.concatenate(
+                                [
+                                    all_pdots['ELS_ECE_EAOV'],
+                                    pdots,
+                                ]
+                            )
+
                             # period = (
                             #         1
                             #         / freqs_no_terrestrial[
