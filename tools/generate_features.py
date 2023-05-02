@@ -27,7 +27,6 @@ import warnings
 from cesium.featurize import time_series, featurize_single_ts
 import json
 from joblib import Parallel, delayed
-import code
 
 BASE_DIR = pathlib.Path(__file__).parent.parent.absolute()
 
@@ -958,29 +957,16 @@ def generate_features(
                             'best_pdots'
                         ][idx]
                     else:
-                        # all_EAOV_indices = topN_significance_indices_allSources[
-                        #     'EAOV_periodogram'
-                        # ]['topN_indices'][idx]
-
                         ELS_ECE_significance_indices_EAOV = (
                             topN_significance_indices_allSources['ELS_ECE_EAOV'][idx]
                         )
-
-                        # ELS_ECE_significance_indices_EAOV = [
-                        #     x
-                        #     for x in all_EAOV_indices
-                        #     if x
-                        #     in topN_significance_indices_allSources['ELS_ECE_EAOV'][idx]
-                        # ]
 
                         best_index_of_indices = np.argmax(
                             topN_significance_indices_allSources['EAOV_periodogram'][
                                 'all_significances'
                             ][ELS_ECE_significance_indices_EAOV]
                         )
-                        # (
-                        #     ELS_ECE_significance_indices_EAOV[0]
-                        # )
+
                         best_ELS_ECE_EAOV_significance_idx = (
                             ELS_ECE_significance_indices_EAOV[best_index_of_indices]
                         )
@@ -1005,7 +991,6 @@ def generate_features(
                 feature_dict[_id][f'significance_{algorithm_name}'] = significance
                 feature_dict[_id][f'pdot_{algorithm_name}'] = pdot
 
-        code.interact(local=locals())
         print(f'Computing Fourier stats for {len(period_dict)} algorithms...')
         for algorithm in period_algorithms:
             if algorithm != 'ELS_ECE_EAOV':
@@ -1038,8 +1023,6 @@ def generate_features(
                 feature_dict[_id][f'f1_relphi3_{algorithm_name}'] = statvals[11]
                 feature_dict[_id][f'f1_relamp4_{algorithm_name}'] = statvals[12]
                 feature_dict[_id][f'f1_relphi4_{algorithm_name}'] = statvals[13]
-
-        code.interact(local=locals())
 
         print('Computing dmdt histograms...')
         dmdt = Parallel(n_jobs=Ncore)(
