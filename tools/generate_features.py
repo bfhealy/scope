@@ -892,7 +892,10 @@ def generate_features(
                                 for i in range(len(p_stats))
                             ]
 
-                            best_indices = ELS_ECE_top_indices[best_index_of_indices]
+                            best_indices = [
+                                ELS_ECE_top_indices[i][best_index_of_indices[i]]
+                                for i in range(len(ELS_ECE_top_indices))
+                            ]
 
                             all_periods['ELS_ECE_EAOV'] = np.concatenate(
                                 [
