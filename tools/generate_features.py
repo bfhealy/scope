@@ -27,7 +27,6 @@ import warnings
 from cesium.featurize import time_series, featurize_single_ts
 import json
 from joblib import Parallel, delayed
-import code
 
 
 BASE_DIR = pathlib.Path(__file__).parent.parent.absolute()
@@ -836,19 +835,6 @@ def generate_features(
                 print(f"Iteration {i+1} of {n_iterations}...")
 
                 for algorithm in period_algorithms:
-                    # Iterate over period batches and algorithms
-                    # all_periods = np.array([])
-                    # all_significances = np.array([])
-                    # all_pdots = np.array([])
-
-                    # all_periods = {}
-                    # topN_significance_indices_allSources[algorithm] = {
-                    #     'topN_indices': [],
-                    #     'best_periods': [],
-                    #     'best_significances': [],
-                    #     'best_pdots': [],
-                    # }
-
                     print(f'Running {algorithm} algorithm:')
                     # Iterate over algorithms
                     periods, significances, pdots = periodsearch.find_periods(
@@ -927,7 +913,7 @@ def generate_features(
                                 [
                                     all_significances['ELS_ECE_EAOV'],
                                     [
-                                        p_stats[i][best_indices[i]]
+                                        p_stats[i].flatten()[best_indices[i]]
                                         for i in range(len(best_indices))
                                     ],
                                 ]
@@ -940,135 +926,6 @@ def generate_features(
                                 ]
                             )
 
-                            code.interact(local=locals())
-
-                            # period = (
-                            #         1
-                            #         / freqs_no_terrestrial[
-                            #             best_ELS_ECE_EAOV_significance_idx
-                            #         ]
-                            #     )
-                            #     topN_significance_indices_allSources['ELS_ECE_EAOV'][
-                            #         'best_periods'
-                            #     ] += [period]
-
-                            #     significance = all_EAOV_significances[
-                            #         best_ELS_ECE_EAOV_significance_idx
-                            #     ]
-                            #     topN_significance_indices_allSources['ELS_ECE_EAOV'][
-                            #         'best_significances'
-                            #     ] += [significance]
-
-                            #     pdot = pdots[idx]
-                            #     topN_significance_indices_allSources['ELS_ECE_EAOV'][
-                            #         'best_pdots'
-                            #     ] += [pdot]
-
-                        # for idx, period_statistics in enumerate(periods):
-                        #     # Maximum statistic is best for ELS; select top N
-                        #     if algorithm == 'ELS_periodogram':
-                        #         topN_significance_indices_ELS = np.argsort(
-                        #             period_statistics['data'].flatten()
-                        #         )[::-1][:top_n_periods]
-                        #         all_periods[algorithm]
-                        # Minimum statistic is best for ECE; select top N
-                        # elif algorithm == 'ECE_periodogram':
-                        #     topN_significance_indices_ECE = np.argsort(
-                        #         period_statistics['data'].flatten()
-                        #     )[:top_n_periods]
-                        # Maximum statistic is best for EAOV; keep all values
-                        # elif algorithm == 'EAOV_periodogram':
-                        #     all_EAOV_significances = period_statistics[
-                        #         'data'
-                        #     ].flatten()
-                        #     # topN_significance_indices_allSources[algorithm][
-                        #     #     'all_significances'
-                        #     # ] = all_significances
-
-                        #     # topN_significance_indices = np.argsort(
-                        #     #     period_statistics['data'].flatten()
-                        #     # )[::-1]
-
-                        #     ELS_ECE_top_indices = np.concatenate(
-                        #         [
-                        #             topN_significance_indices_allSources[
-                        #                 'ELS_periodogram'
-                        #             ]['topN_indices'][idx],
-                        #             topN_significance_indices_allSources[
-                        #                 'ECE_periodogram'
-                        #             ]['topN_indices'][idx],
-                        #         ],
-                        #         # axis=1,
-                        #     )
-                        #     topN_significance_indices_allSources['ELS_ECE_EAOV'][
-                        #         'topN_indices'
-                        #     ] += [np.unique(x) for x in ELS_ECE_top_indices]
-                        #     ###
-                        #     # Unneeded assignment?
-                        #     ELS_ECE_significance_indices_EAOV = (
-                        #         topN_significance_indices_allSources[
-                        #             'ELS_ECE_EAOV'
-                        #         ]['topN_indices'][idx]
-                        #     )
-                        #     best_index_of_indices = np.argmax(
-                        #         all_EAOV_significances[
-                        #             ELS_ECE_significance_indices_EAOV
-                        #         ]
-                        #     )
-                        #     best_ELS_ECE_EAOV_significance_idx = (
-                        #         ELS_ECE_significance_indices_EAOV[
-                        #             best_index_of_indices
-                        #         ]
-                        #     )
-
-                        #     period = (
-                        #         1
-                        #         / freqs_no_terrestrial[
-                        #             best_ELS_ECE_EAOV_significance_idx
-                        #         ]
-                        #     )
-                        #     topN_significance_indices_allSources['ELS_ECE_EAOV'][
-                        #         'best_periods'
-                        #     ] += [period]
-
-                        #     significance = all_EAOV_significances[
-                        #         best_ELS_ECE_EAOV_significance_idx
-                        #     ]
-                        #     topN_significance_indices_allSources['ELS_ECE_EAOV'][
-                        #         'best_significances'
-                        #     ] += [significance]
-
-                        #     pdot = pdots[idx]
-                        #     topN_significance_indices_allSources['ELS_ECE_EAOV'][
-                        #         'best_pdots'
-                        #     ] += [pdot]
-
-                        # pdot = topN_significance_indices_allSources['EAOV_periodogram'][
-                        #     'best_pdots'
-                        # ][idx]
-
-                        # del all_EAOV_significances
-
-                        # Move under if statements to avoid large dict?
-                        # topN_significance_indices_allSources[algorithm][
-                        #     'topN_indices'
-                        # ] += [topN_significance_indices]
-                        # best_index = topN_significance_indices[0]
-                        # best_period = 1 / freqs_no_terrestrial[best_index]
-                        # topN_significance_indices_allSources[algorithm][
-                        #     'best_periods'
-                        # ] += [best_period]
-
-                        # best_significance = significances[idx]
-                        # topN_significance_indices_allSources[algorithm][
-                        #     'best_significances'
-                        # ] += [best_significance]
-
-                        # best_pdot = pdots[idx]
-                        # topN_significance_indices_allSources[algorithm][
-                        #     'best_pdots'
-                        # ] += [best_pdot]
-
                     all_significances[algorithm] = np.concatenate(
                         [all_significances[algorithm], significances]
                     )
@@ -1080,21 +937,7 @@ def generate_features(
 
             if do_nested_GPU_algorithms:
                 period_algorithms += ['ELS_ECE_EAOV']
-            #     ELS_ECE_top_indices = np.concatenate(
-            #         [
-            #             topN_significance_indices_allSources['ELS_periodogram'][
-            #                 'topN_indices'
-            #             ],
-            #             topN_significance_indices_allSources['ECE_periodogram'][
-            #                 'topN_indices'
-            #             ],
-            #         ],
-            #         axis=1,
-            #     )
-            #     topN_significance_indices_allSources['ELS_ECE_EAOV'] = [
-            #         np.unique(x) for x in ELS_ECE_top_indices
-            #     ]
-            #     period_algorithms += ['ELS_ECE_EAOV']
+
         else:
             warnings.warn("Skipping period finding; setting all periods to 1.0 d.")
             # Default periods 1.0 d
@@ -1108,49 +951,12 @@ def generate_features(
                 algorithm_name = algorithm.split('_')[0]
             else:
                 algorithm_name = algorithm
+
             for idx, _id in enumerate(keep_id_list):
-                # if not do_nested_GPU_algorithms:
+
                 period = period_dict[algorithm][idx]
                 significance = significance_dict[algorithm][idx]
                 pdot = pdot_dict[algorithm][idx]
-                # else:
-                #     # if algorithm != 'ELS_ECE_EAOV':
-                #     period = topN_significance_indices_allSources[algorithm][
-                #         'best_periods'
-                #     ][idx]
-                #     significance = topN_significance_indices_allSources[algorithm][
-                #         'best_significances'
-                #     ][idx]
-                #     pdot = topN_significance_indices_allSources[algorithm][
-                #         'best_pdots'
-                #     ][idx]
-                # else:
-
-                # ELS_ECE_significance_indices_EAOV = (
-                #     topN_significance_indices_allSources['ELS_ECE_EAOV'][idx]
-                # )
-
-                # best_index_of_indices = np.argmax(
-                #     topN_significance_indices_allSources['EAOV_periodogram'][
-                #         'all_significances'
-                #     ][ELS_ECE_significance_indices_EAOV]
-                # )
-
-                # best_ELS_ECE_EAOV_significance_idx = (
-                #     ELS_ECE_significance_indices_EAOV[best_index_of_indices]
-                # )
-
-                # period = (
-                #     1 / freqs_no_terrestrial[best_ELS_ECE_EAOV_significance_idx]
-                # )
-
-                # significance = topN_significance_indices_allSources[
-                #     'EAOV_periodogram'
-                # ]['all_significances'][best_ELS_ECE_EAOV_significance_idx]
-
-                # pdot = topN_significance_indices_allSources['EAOV_periodogram'][
-                #     'best_pdots'
-                # ][idx]
 
                 tme_dict[_id][f'period_{algorithm_name}'] = period
                 tme_dict[_id][f'significance_{algorithm_name}'] = significance
@@ -1160,7 +966,6 @@ def generate_features(
                 feature_dict[_id][f'significance_{algorithm_name}'] = significance
                 feature_dict[_id][f'pdot_{algorithm_name}'] = pdot
 
-        code.interact(local=locals())
         print(f'Computing Fourier stats for {len(period_dict)} algorithms...')
         for algorithm in period_algorithms:
             if algorithm != 'ELS_ECE_EAOV':
