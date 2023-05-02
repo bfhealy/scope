@@ -777,11 +777,11 @@ def generate_features(
         period_dict = {}
         significance_dict = {}
         pdot_dict = {}
+        do_nested_GPU_algorithms = False
         if doCPU or doGPU:
             if doCPU and doGPU:
                 raise KeyError('Please set only one of --doCPU or --doGPU.')
 
-            do_nested_GPU_algorithms = False
             if 'ELS_ECE_EAOV' in period_algorithms:
                 period_algorithms = [
                     'ELS_periodogram',
