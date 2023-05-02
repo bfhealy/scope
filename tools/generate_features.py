@@ -997,9 +997,9 @@ def generate_features(
                                 'best_pdots'
                             ] += [best_pdot]
 
-                period_dict[algorithm] = all_periods
-                significance_dict[algorithm] = all_significances
-                pdot_dict[algorithm] = all_pdots
+            period_dict = all_periods
+            significance_dict = all_significances
+            pdot_dict = all_pdots
 
             if do_nested_GPU_algorithms:
                 period_algorithms += ['ELS_ECE_EAOV']
