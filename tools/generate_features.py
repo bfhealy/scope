@@ -1123,6 +1123,9 @@ def generate_features(
     else:
         print(f"Generated features for {len(feature_df)} sources.")
 
+    jobid = os.getenv('SLURM_JOB_ID')
+    os.system(f'scancel {jobid}')    
+
     return feature_df
 
 
