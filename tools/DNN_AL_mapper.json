@@ -192,5 +192,35 @@
     "cv_dnn":
       {"fritz_label": "Cataclysmic",
         "taxonomy_id": 1015
+      },
+
+    "wvir_dnn":
+      {"fritz_label": "W Vir",
+        "taxonomy_id": 1015
+      },
+
+    "rrblz_dnn":
+      {"fritz_label": "Blazhko",
+        "taxonomy_id": 1015
+      },
+
+    "blher_dnn":
+      {"fritz_label": "BL Her",
+        "taxonomy_id": 1015
+      },
+
+    "dip_dnn":
+      {"fritz_label": "dipping",
+        "taxonomy_id": 1017
+      },
+
+    "dp_dnn":
+      {"fritz_label": "double period",
+        "taxonomy_id": 1017
+      },
+
+    "ext_dnn":
+      {"fritz_label": "extended",
+        "taxonomy_id": 1017
       }
     }
