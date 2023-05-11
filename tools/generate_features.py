@@ -156,17 +156,17 @@ def drop_close_bright_stars(
         }
 
         responses = kowalski_instances.query(query)
-    for name in responses.keys():
-        if len(responses[name]) > 0:
-            response = responses[name]
-            if response.get("status", "error") == "success":
-                gaia_results = response.get("data")
-                gaia_results_dct.update(gaia_results[catalog])
+        for name in responses.keys():
+            if len(responses[name]) > 0:
+                response = responses[name]
+                if response.get("status", "error") == "success":
+                    gaia_results = response.get("data")
+                    gaia_results_dct.update(gaia_results[catalog])
 
-        print('Identifying sources too close to bright stars...')
+            print('Identifying sources too close to bright stars...')
 
-        # Loop over each id to compare with query results
-        query_result = np.array(gaia_results_dct['quad'])
+            # Loop over each id to compare with query results
+            query_result = np.array(gaia_results_dct['quad'])
 
     else:
         n_sources = len(id_dct)
@@ -544,6 +544,9 @@ def generate_features(
                 catalog=gaia_catalog,
                 query_radius_arcsec=bright_star_query_radius_arcsec,
                 xmatch_radius_arcsec=xmatch_radius_arcsec,
+                limit=limit,
+                Ncore=Ncore,
+                save=not doNotSave,
             )
         else:
             feature_gen_source_dict = lst[0]
