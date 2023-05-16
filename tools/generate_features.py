@@ -453,6 +453,7 @@ def generate_features(
     doSpecificIDs: bool = False,
     skipCloseSources: bool = False,
     top_n_periods: int = 50,
+    max_freq: float = 48.0,
 ):
     """
     Generate features for ZTF light curves
@@ -761,7 +762,7 @@ def generate_features(
                 2 * min_cadence_minutes / 1440
             )  # Nyquist frequency given minimum cadence converted to days
         else:
-            fmin, fmax = 2 / baseline, 480
+            fmin, fmax = 2 / baseline, max_freq
 
         df = 1.0 / (samples_per_peak * baseline)
         nf = int(np.ceil((fmax - fmin) / df))
@@ -1288,6 +1289,12 @@ if __name__ == "__main__":
         default=50,
         help="number of ELS, ECE periods to pass to EAOV if using ELS_ECE_EAOV algorithm",
     )
+    parser.add_argument(
+        "--max_freq",
+        type=float,
+        default=48.0,
+        help="maximum frequency [1 / days] to use for period finding. Overridden by --doScaleMinPeriod",
+    )
 
     args = parser.parse_args()
 
@@ -1323,4 +1330,5 @@ if __name__ == "__main__":
         doSpecificIDs=args.doSpecificIDs,
         skipCloseSources=args.skipCloseSources,
         top_n_periods=args.top_n_periods,
+        max_freq=args.max_freq,
     )
