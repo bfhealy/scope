@@ -228,10 +228,12 @@ def drop_close_bright_stars(
                 )
                 for name in responses.keys():
                     if len(responses[name]) > 0:
-                        response = responses[name]
-                        if response.get("status", "error") == "success":
-                            gaia_results = response.get('data').get(catalog)
-                            gaia_results_dct.update(gaia_results)
+                        response_list = responses[name]
+                        for response in response_list:
+                            if response.get("status", "error") == "success":
+                                gaia_results = response.get('data').get(catalog)
+                                gaia_results_dct.update(gaia_results)
+
             else:
                 # Get Gaia EDR3 ID, G mag, BP-RP, and coordinates
                 query = {
