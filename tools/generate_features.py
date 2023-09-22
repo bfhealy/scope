@@ -750,7 +750,7 @@ def generate_features(
 
     basicStats = Parallel(n_jobs=Ncore)(
         delayed(lcstats.calc_basic_stats)(id, vals['tme'])
-        for id, vals in tme_dict.items()
+        for id, vals in feature_dict.items()
     )
 
     for statline in basicStats:
